@@ -28,8 +28,6 @@ class GetImageActivity : AppCompatActivity(), PickiTCallbacks {
     private lateinit var tcpClient: MyTcpClient
 
     private lateinit var pickiT: PickiT
-    var myStr = ""
-    private lateinit var byteArray: ByteArray
 
     var fileTypeCurrent = 0
 
@@ -72,12 +70,6 @@ class GetImageActivity : AppCompatActivity(), PickiTCallbacks {
                 Intent.createChooser(intent, "Select Txt File"),
                 PICK_FILE_TYPE.Txt.type
             )
-        }
-
-        binding.tvDecode.setOnClickListener {
-            val bytes = android.util.Base64.decode(myStr, android.util.Base64.DEFAULT)
-            val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-            binding.iv.setImageBitmap(bmp)
         }
 
     }
