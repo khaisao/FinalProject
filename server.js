@@ -1,12 +1,14 @@
 const net = require('net');
 const sharp = require('sharp');
 const fs = require('fs');
+const path = require("path");
 
 let data = Buffer.alloc(0);
 
 
 const server = net.createServer((socket) => {
     console.log('Client connected');
+
 
     socket.on('data', function(chunk) {
         // Append the new chunk to the existing data
@@ -18,18 +20,28 @@ const server = net.createServer((socket) => {
             // Extract the message from the buffer and remove the null terminator
             const message = data.toString('utf8', 0, nullTerminatorIndex);
 
-            console.log(`Received message: ${message}`);
-
-            // Extract the base64-encoded image data from the message
-            const imageData = message.substring(message.indexOf(',') + 1);
+            const fileData = message.substring(message.indexOf(',') + 1);
+            // Extract the file name from the message
+            const fileName = message.substring(0, message.indexOf(','));
 
             // Decode the base64-encoded data
-            const decodedData = Buffer.from(imageData, 'base64');
+            const decodedData = Buffer.from(fileData, 'base64');
 
             // Write the decoded data to a file
-            fs.writeFile('image.jpg', decodedData, function(err) {
-                if (err) throw err;
-                console.log('Image saved successfully');
+            const filePath = path.join(__dirname, 'uploads', fileName);
+            const dirPath = path.dirname(filePath);
+            fs.mkdir(dirPath, { recursive: true }, function(err) {
+                if (err) {
+                    console.error(`Error creating directory ${dirPath}: ${err}`);
+                } else {
+                    fs.writeFile(filePath, decodedData, function(err) {
+                        if (err) {
+                            console.error(`Error saving file ${fileName}: ${err}`);
+                        } else {
+                            console.log(`File ${fileName} saved successfully`);
+                        }
+                    });
+                }
             });
 
             // Remove the processed message from the data buffer
