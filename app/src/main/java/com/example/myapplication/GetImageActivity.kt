@@ -48,10 +48,6 @@ class GetImageActivity : AppCompatActivity(), PickiTCallbacks {
         lifecycleScope.launch(Dispatchers.IO) {
             tcpClient = MyTcpClient()
             tcpClient.connect()
-            val abc = getAllImagePaths()
-            for(item in abc){
-                tcpClient.sendFile(item)
-            }
         }
 
 
@@ -73,7 +69,7 @@ class GetImageActivity : AppCompatActivity(), PickiTCallbacks {
             intent.setType("*/*");
             intent.action = Intent.ACTION_GET_CONTENT
             startActivityForResult(
-                Intent.createChooser(intent, "Select Picture"),
+                Intent.createChooser(intent, "Select Txt File"),
                 PICK_FILE_TYPE.Txt.type
             )
         }
@@ -89,12 +85,11 @@ class GetImageActivity : AppCompatActivity(), PickiTCallbacks {
     @SuppressLint("SuspiciousIndentation")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-            if (resultCode == RESULT_OK) {
-                if (data != null) {
-                    pickiT.getPath(data.data, Build.VERSION.SDK_INT)
-                }
+        if (resultCode == RESULT_OK) {
+            if (data != null) {
+                pickiT.getPath(data.data, Build.VERSION.SDK_INT)
             }
-
+        }
 
 
     }
@@ -119,13 +114,13 @@ class GetImageActivity : AppCompatActivity(), PickiTCallbacks {
         Reason: String?
     ) {
         if (path != null) {
-                try {
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        tcpClient.sendFile(path)
-                    }
-                } catch (e: IOException) {
-                    e.printStackTrace()
+            try {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    tcpClient.sendFile(path)
                 }
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
 
 
         }
