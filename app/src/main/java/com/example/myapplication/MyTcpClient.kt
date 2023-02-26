@@ -1,17 +1,10 @@
 package com.example.myapplication
 
-import android.graphics.BitmapFactory
-import android.os.Build
-import android.util.Base64.DEFAULT
 import android.util.Log
-import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.*
 import java.net.Socket
-import java.util.*
-import kotlin.math.log
-import kotlin.math.min
 
 
 class MyTcpClient {
@@ -39,15 +32,24 @@ class MyTcpClient {
         }
     }
 
-    fun sendMessage(message: String) {
+    fun sendFile(path:String) {
         try {
             val outputStream = socket?.getOutputStream()
             val outputStreamWriter = OutputStreamWriter(outputStream)
             val bufferedWriter = BufferedWriter(outputStreamWriter)
-
+            val fileName = getFileName(path)
+            var base64String = ""
+            if(getFileType(path) == ".png" || getFileType(path)==".jpg" || getFileType(path) ==".jpeg"){
+                 base64String = getBase64OfImageFile(path)
+            }
+            if(getFileType(path) == ".txt" ){
+                base64String = getBase64OfTxtFile(path)
+            }
+            val message = "$fileName,$base64String"
             val chunkSize = 1024 // define chunk size
             var startPos = 0
 
+            // Send the message in chunks
             while (startPos < message.length) {
                 val endPos = minOf(startPos + chunkSize, message.length)
                 val chunk = message.substring(startPos, endPos)
@@ -61,8 +63,11 @@ class MyTcpClient {
             bufferedWriter.flush()
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.d("Error", "Error send file: $e")
         }
     }
+
+
 
 
 
