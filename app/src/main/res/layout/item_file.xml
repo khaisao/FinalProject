@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_marginBottom="24dp"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/iv_file"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/default_avatar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/roundedImageView" />
+
+    <ImageView
+        android:id="@+id/iv_play_video"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/iv_file"
+        app:layout_constraintStart_toStartOf="@id/iv_file"
+        app:layout_constraintBottom_toBottomOf="@id/iv_file"
+        app:layout_constraintTop_toTopOf="@id/iv_file"
+        android:src="@drawable/ic_play_video"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:orientation="vertical"
+        android:layout_marginEnd="30dp"
+        app:layout_constraintBottom_toBottomOf="@id/iv_file"
+        app:layout_constraintStart_toEndOf="@id/iv_file"
+        app:layout_constraintTop_toTopOf="@id/iv_file">
+
+        <TextView
+            android:id="@+id/tv_file_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:fontFamily="@font/dm_sans_bold"
+            android:text="awaegggggggggggggggggggggggggggggggggggggggbc.jpb"
+            android:textColor="#273043"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_file_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/dm_sans_bold"
+            android:text="1.8 MB"
+            android:textColor="#80273043"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
