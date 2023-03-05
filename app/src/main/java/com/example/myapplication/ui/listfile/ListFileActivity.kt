@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.view.Window
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -15,8 +16,12 @@ import com.example.myapplication.callback.OnItemFileClickListener
 import com.example.myapplication.databinding.ActivityListFileBinding
 import com.example.myapplication.data.UiState
 import com.example.myapplication.ui.bottomsheet.FileManagerBottomSheetFragment
+import com.example.myapplication.util.FileUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 @AndroidEntryPoint
 class ListFileActivity : BaseActivity<ActivityListFileBinding, ListFileViewModel>(),
@@ -54,8 +59,9 @@ class ListFileActivity : BaseActivity<ActivityListFileBinding, ListFileViewModel
             viewModel.getAllImages()
         } else if (title == "Audio") {
             viewModel.getAllAudio()
-        } else if (title == "Recent Files") {
-            viewModel.getAllRecentFile()
+        } else if (title == "File Sent") {
+            viewModel.getAllFileSent()
+            binding.tvDeleteAll.visibility= View.VISIBLE
         } else if (title == "Document") {
             viewModel.getAllDocument()
         } else {
@@ -91,6 +97,11 @@ class ListFileActivity : BaseActivity<ActivityListFileBinding, ListFileViewModel
                 finish()
             }
 
+            tvDeleteAll.setOnClickListener {
+                FileUtils.deleteFilesInFolder(Constants.DIR_PATH)
+                viewModel.getAllFileSent()
+            }
+
             edtSearch.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(
                     s: CharSequence?,
@@ -118,6 +129,5 @@ class ListFileActivity : BaseActivity<ActivityListFileBinding, ListFileViewModel
         val bottomSheet = FileManagerBottomSheetFragment.newInstance(filePath)
         bottomSheet.show(supportFragmentManager, "bottom_sheet_tag")
     }
-
 
 }

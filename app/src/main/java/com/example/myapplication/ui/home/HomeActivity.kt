@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
-import android.text.TextUtils
 import android.view.Window
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
@@ -17,28 +16,26 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.Constants
 import com.example.myapplication.R
 import com.example.myapplication.adapter.ListFileAdapter
+import com.example.myapplication.base.BaseActivity
 import com.example.myapplication.callback.OnItemFileClickListener
+import com.example.myapplication.data.UiState
 import com.example.myapplication.data.VolumeStats
 import com.example.myapplication.databinding.ActivityHomeBinding
 import com.example.myapplication.gbToUse
 import com.example.myapplication.getShiftUnits
+import com.example.myapplication.service.WebService
+import com.example.myapplication.ui.bottomsheet.FileManagerBottomSheetFragment
+import com.example.myapplication.ui.bottomsheet.ServiceBottomSheetFragment
+import com.example.myapplication.ui.listfile.ListFileActivity
 import com.hbisoft.pickit.PickiT
 import com.hbisoft.pickit.PickiTCallbacks
-import com.koushikdutta.async.http.server.AsyncHttpServer
-import com.koushikdutta.async.http.server.AsyncHttpServerRequest
-import com.koushikdutta.async.http.server.AsyncHttpServerResponse
 import dagger.hilt.android.AndroidEntryPoint
-import com.example.myapplication.base.BaseActivity
-import com.example.myapplication.ui.listfile.ListFileActivity
-import com.example.myapplication.data.UiState
-import com.example.myapplication.ui.bottomsheet.FileManagerBottomSheetFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.*
-import java.net.URLDecoder
-import java.net.URLEncoder
 import java.util.*
 import kotlin.math.roundToLong
+
 
 @AndroidEntryPoint
 class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(), PickiTCallbacks,OnItemFileClickListener {
@@ -75,49 +72,6 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(), PickiTC
         val window: Window = window
         window.setBackgroundDrawableResource(R.drawable.bg_top_gradient_grey)
         setSupportActionBar(binding.toolBar)
-
-        val server = AsyncHttpServer()
-
-        server["/css/.*", { request: AsyncHttpServerRequest?, response: AsyncHttpServerResponse? ->
-            sendResources(
-                request!!, response!!
-            )
-        }]
-        server["/", { request: AsyncHttpServerRequest?, response: AsyncHttpServerResponse ->
-            try {
-                response.send(getDataOfIndexFile())
-            } catch (e: IOException) {
-                e.printStackTrace()
-                response.code(500).end()
-            }
-        }]
-
-        //download
-        server["/files/.*", { request: AsyncHttpServerRequest, response: AsyncHttpServerResponse ->
-            var path: String? = request.path.replace("/files/", "")
-            try {
-                path = URLDecoder.decode(path, "utf-8")
-            } catch (e: UnsupportedEncodingException) {
-                e.printStackTrace()
-            }
-            val file = File(Constants.DIR, path)
-            if (file.exists() && file.isFile) {
-                try {
-                    //set header to make browser download file
-                    response.headers.add(
-                        "Content-Disposition", "attachment;filename=" +
-                                URLEncoder.encode(file.name, "utf-8")
-                    )
-                } catch (e: UnsupportedEncodingException) {
-                    e.printStackTrace()
-                }
-                response.sendFile(file)
-            } else {
-                response.code(404).send("Not found!")
-            }
-        }]
-
-        server.listen(5000)
         initView()
         setOnClick()
 
@@ -161,6 +115,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(), PickiTC
                 }
             }
         }
+
         getVolumeStats()
         showVolumeStats()
     }
@@ -229,7 +184,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(), PickiTC
             }
             tvSeeAll.setOnClickListener {
                 val intent = Intent(this@HomeActivity, ListFileActivity::class.java)
-                intent.putExtra("title","Recent Files")
+                intent.putExtra("title","File Sent")
                 startActivity(intent)
             }
             flSearch.setOnClickListener {
@@ -237,69 +192,20 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(), PickiTC
                 intent.putExtra("title","Search")
                 startActivity(intent)
             }
+            fabService.setOnClickListener {
+                val serviceBottomSheet = ServiceBottomSheetFragment()
+                WebService.start(applicationContext)
+                serviceBottomSheet.show(supportFragmentManager,"Service")
+            }
+
         }
     }
 
-    private fun sendResources(request: AsyncHttpServerRequest, response: AsyncHttpServerResponse) {
-        try {
-            var fullPath = request.path
-            fullPath = fullPath.replace("%20", " ")
-            var resourceName = fullPath
-            if (resourceName.startsWith("/")) {
-                resourceName = resourceName.substring(1)
-            }
-            if (resourceName.indexOf("?") > 0) {
-                resourceName = resourceName.substring(0, resourceName.indexOf("?"))
-            }
-            if (!TextUtils.isEmpty(getContentTypeByResourceName(resourceName))) {
-                response.setContentType(getContentTypeByResourceName(resourceName))
-            }
-            val bInputStream = BufferedInputStream(
-                assets.open(
-                    "wifi/" +
-                            resourceName
-                )
-            )
-            response.sendStream(bInputStream, bInputStream.available().toLong())
-        } catch (e: IOException) {
-            e.printStackTrace()
-            response.code(404).end()
-            return
-        }
+    override fun onStart() {
+        super.onStart()
+        viewModel.getAllFileSent()
     }
 
-    //import css to index
-    private fun getContentTypeByResourceName(resourceName: String): String {
-        if (resourceName.endsWith(".css")) {
-            return CSS_CONTENT_TYPE
-        }
-        return ""
-    }
-
-    private fun getDataOfIndexFile(): String? {
-        var bInputStream: BufferedInputStream? = null
-        return try {
-            bInputStream = BufferedInputStream(assets.open("wifi/index.html"))
-            val baos = ByteArrayOutputStream()
-            var len = 0
-            val tmp = ByteArray(10240)
-            while (bInputStream.read(tmp).also { len = it } > 0) {
-                baos.write(tmp, 0, len)
-            }
-            baos.toString("utf-8")
-        } catch (e: IOException) {
-            e.printStackTrace()
-            throw e
-        } finally {
-            if (bInputStream != null) {
-                try {
-                    bInputStream.close()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
 
     @SuppressLint("SuspiciousIndentation")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -309,8 +215,6 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(), PickiTC
                 pickiT.getPath(data.data, Build.VERSION.SDK_INT)
             }
         }
-
-
     }
 
     override fun PickiTonUriReturned() {

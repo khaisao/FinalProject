@@ -75,7 +75,7 @@ class ListFileViewModel @Inject constructor(
         }
     }
 
-     fun getAllRecentFile(){
+     fun getAllFileSent(){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val listFile = arrayListOf<String>()

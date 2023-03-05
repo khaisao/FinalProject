@@ -6,9 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.core.content.FileProvider
+import com.example.myapplication.Constants
 import com.example.myapplication.R
+import org.greenrobot.eventbus.EventBus
 import java.io.*
 import java.util.*
 
@@ -65,6 +69,20 @@ object FileUtils {
         return FileType.TYPE_UNKNOWN
     }
 
+    fun deleteFilesInFolder(folderPath: String) {
+        val folder = File(folderPath)
+        if (folder.exists() && folder.isDirectory) {
+            val files = folder.listFiles()
+            if (files != null) {
+                for (file in files) {
+                    if (file.isFile) {
+                        file.delete()
+                    }
+                }
+            }
+        }
+    }
+
     private fun checkStringEnds(item: String, array: Array<String>): Int {
         for (i in array.indices) {
             if (item.lowercase(Locale.getDefault()).endsWith(array[i])) {
@@ -96,6 +114,29 @@ object FileUtils {
         }
         `in`.close()
         out.close()
+    }
+
+    fun copyFile(absolutePath: String): Boolean {
+        val filename: String = absolutePath.substring(absolutePath.lastIndexOf("/") + 1)
+        Log.d("lkasgjkasg", filename.toString())
+        val srcFile = File(
+            absolutePath
+        )
+        val destFile = File(
+            Constants.DIR_PATH.toString() + "/" + filename
+        )
+        try {
+            srcFile.copyTo(
+                target = destFile,
+                overwrite = false,
+                bufferSize = DEFAULT_BUFFER_SIZE
+            )
+          return  destFile.exists() && destFile.readBytes().contentEquals(srcFile.readBytes())
+
+        } catch (e: Exception) {
+            Log.e("sagasgasfasg", e.toString())
+           return false
+        }
     }
 
     @SuppressLint("Range")

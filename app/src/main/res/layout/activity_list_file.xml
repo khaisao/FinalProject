@@ -82,6 +82,21 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
+                    <TextView
+                        android:id="@+id/tv_delete_all"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/dm_sans_medium"
+                        android:text="Delete all"
+                        android:visibility="gone"
+                        android:padding="10dp"
+                        android:textColor="#E3264A"
+                        android:textSize="16sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+
+                        app:layout_constraintBottom_toBottomOf="@id/tv_recent_file"
+                        app:layout_constraintTop_toTopOf="@id/tv_recent_file" />
+
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rv"
                         android:layout_width="match_parent"

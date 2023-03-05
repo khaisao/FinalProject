@@ -18,10 +18,11 @@ class HomeViewModel @Inject constructor(
     val listFileSent: Flow<UiState<List<String>>>
         get() = _listFileSent
     private val _listFileSent = MutableStateFlow<UiState<List<String>>>(UiState.Loading)
+
     init {
-        getAllImages()
+        getAllFileSent()
     }
-    private fun getAllImages(){
+    fun getAllFileSent(){
         viewModelScope.launch {
             try {
                 val listFile = arrayListOf<String>()

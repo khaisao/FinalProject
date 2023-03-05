@@ -5,11 +5,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.example.myapplication.R
+import com.example.myapplication.callback.OnBottomSheetFileClickListener
 import com.example.myapplication.databinding.FragmentBottomSheetMoreBinding
+import com.example.myapplication.util.FileUtils
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class FileManagerBottomSheetFragment : BottomSheetDialogFragment() {
+class FileManagerBottomSheetFragment() : BottomSheetDialogFragment() {
 
     companion object {
         private const val ARG_FILE_PATH = "file_path"
@@ -40,13 +43,17 @@ class FileManagerBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.llOpen.setOnClickListener {
-            com.example.myapplication.util.FileUtils.openFile(filePath,requireContext())
+            FileUtils.openFile(filePath, requireContext())
         }
-        // Set up the views and listeners here
-//        binding.tvFilePath.text = filePath
-//        binding.btnClose.setOnClickListener {
-//            dismiss()
-//        }
+        binding.llSend.setOnClickListener {
+            dismiss()
+            val isSent = FileUtils.copyFile(filePath)
+            if (isSent) {
+                Toast.makeText(requireContext(), "Success", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Fail", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
