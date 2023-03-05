@@ -4,6 +4,7 @@ import android.os.Environment
 import java.io.File
 
 object Constants {
+    const val DURATION_TIME_CLICKABLE = 500
     const val HTTP_PORT = 12345
     const val DIR_IN_SDCARD = "TLUTransfer"
     const val MSG_DIALOG_DISMISS = 0

@@ -1,4 +1,4 @@
-package com.example.myapplication.ui
+package com.example.myapplication.ui.home
 
 import android.annotation.SuppressLint
 import android.app.usage.StorageStatsManager
@@ -6,15 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.os.StatFs
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import android.text.TextUtils
-import android.util.Log
 import android.view.Window
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.Constants
@@ -30,6 +27,11 @@ import com.hbisoft.pickit.PickiTCallbacks
 import com.koushikdutta.async.http.server.AsyncHttpServer
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest
 import com.koushikdutta.async.http.server.AsyncHttpServerResponse
+import dagger.hilt.android.AndroidEntryPoint
+import com.example.myapplication.base.BaseActivity
+import com.example.myapplication.ui.listfile.ListFileActivity
+import com.example.myapplication.data.UiState
+import com.example.myapplication.ui.bottomsheet.FileManagerBottomSheetFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.*
@@ -38,9 +40,16 @@ import java.net.URLEncoder
 import java.util.*
 import kotlin.math.roundToLong
 
+@AndroidEntryPoint
+class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(), PickiTCallbacks,OnItemFileClickListener {
 
-class HomeActivity : AppCompatActivity(), PickiTCallbacks,OnItemFileClickListener {
-    private lateinit var binding: ActivityHomeBinding
+    private val viewModel: HomeViewModel by viewModels()
+
+
+    override val layoutId: Int = R.layout.activity_home
+
+    override fun getVM(): HomeViewModel =viewModel
+
     private val CSS_CONTENT_TYPE = "text/css;charset=utf-8"
     private lateinit var pickiT: PickiT
     private lateinit var adapter:ListFileAdapter
@@ -129,15 +138,34 @@ class HomeActivity : AppCompatActivity(), PickiTCallbacks,OnItemFileClickListene
                 listFile.add(filePath)
             }
         }
-        adapter = ListFileAdapter(listFile,this)
+        adapter = ListFileAdapter(this)
 
         binding.rv.layoutManager = LinearLayoutManager(this@HomeActivity,LinearLayoutManager.VERTICAL,false)
         binding.rv.adapter = adapter
         mStorageManager = getSystemService(Context.STORAGE_SERVICE) as StorageManager
+        lifecycleScope.launch {
+            viewModel.listFileSent.collect { uiState ->
+                when (uiState) {
+                    is UiState.Loading -> {
+                        showLoading()
+                    }
+                    is UiState.Success -> {
+                        val allImagePaths = uiState.data
+                        adapter.submitList(allImagePaths)
+                        hiddenLoading()
+                    }
+                    is UiState.Failure -> {
+                        hiddenLoading()
+                        val errorMessage = uiState.error
+                    }
+                }
+            }
+        }
         getVolumeStats()
         showVolumeStats()
-
     }
+
+
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun showVolumeStats() {
@@ -197,6 +225,16 @@ class HomeActivity : AppCompatActivity(), PickiTCallbacks,OnItemFileClickListene
             llAudio.setOnClickListener {
                 val intent = Intent(this@HomeActivity, ListFileActivity::class.java)
                 intent.putExtra("title","Audio")
+                startActivity(intent)
+            }
+            tvSeeAll.setOnClickListener {
+                val intent = Intent(this@HomeActivity, ListFileActivity::class.java)
+                intent.putExtra("title","Recent Files")
+                startActivity(intent)
+            }
+            flSearch.setOnClickListener {
+                val intent = Intent(this@HomeActivity, ListFileActivity::class.java)
+                intent.putExtra("title","Search")
                 startActivity(intent)
             }
         }
@@ -316,5 +354,10 @@ class HomeActivity : AppCompatActivity(), PickiTCallbacks,OnItemFileClickListene
 
     override fun onClick(path: String) {
 
+    }
+
+    override fun onClickMore(filePath: String) {
+        val bottomSheet = FileManagerBottomSheetFragment.newInstance(filePath)
+        bottomSheet.show(supportFragmentManager, "bottom_sheet_tag")
     }
 }

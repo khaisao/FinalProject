@@ -3,8 +3,7 @@ package com.example.myapplication
 import android.content.Context
 import android.os.Environment
 import android.provider.MediaStore
-import android.webkit.MimeTypeMap
-import com.example.myapplication.ui.HomeActivity
+import com.example.myapplication.ui.home.HomeActivity
 import java.io.File
 
 
